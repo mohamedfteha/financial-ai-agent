@@ -3,93 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanceGPT - AI Financial Assistant</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>FinanceGPT - AI Financial Analytics Assistant</title>
     <style>
-        .chat-container { height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; }
-        .message { margin-bottom: 15px; }
-        .user-message { text-align: right; }
-        .ai-message { text-align: left; }
-        .message-bubble { display: inline-block; padding: 10px 15px; border-radius: 15px; max-width: 70%; }
-        .user-bubble { background: #007bff; color: white; }
-        .ai-bubble { background: #f8f9fa; border: 1px solid #ddd; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            padding: 40px;
+        }
+
+        .logo {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 3.5em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .powered-by {
+            font-size: 1.1em;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 60px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-desc {
+            opacity: 0.9;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h4>🤖 FinanceGPT - AI Financial Assistant</h4>
-                        <small>Powered by Amazon Bedrock & Claude Sonnet</small>
-                    </div>
-                    <div class="card-body">
-                        <div id="chatContainer" class="chat-container mb-3"></div>
-                        <div class="input-group">
-                            <input type="text" id="messageInput" class="form-control" placeholder="Ask about stocks, market analysis, or financial insights...">
-                            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
-                        </div>
-                        <div class="mt-3">
-                            <button class="btn btn-outline-primary btn-sm me-2" onclick="quickMessage('Analyze Apple stock')">📊 Analyze Apple</button>
-                            <button class="btn btn-outline-success btn-sm me-2" onclick="quickMessage('What is the current market sentiment?')">📈 Market Sentiment</button>
-                            <button class="btn btn-outline-info btn-sm" onclick="quickMessage('Generate a financial report')">📋 Generate Report</button>
-                        </div>
-                    </div>
-                </div>
+    <div class="container">
+        <div class="logo">🤖</div>
+        <h1 class="title">FinanceGPT</h1>
+        <p class="subtitle">AI-Powered Financial Analytics Assistant</p>
+        <p class="powered-by">Powered by Amazon Bedrock & Claude Sonnet</p>
+        
+        <div class="buttons">
+            <a href="chat.html" class="btn btn-primary">Try Live Demo</a>
+            <a href="https://github.com/mohamedfteha/financial-ai-agent" class="btn btn-secondary">View Code</a>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">Real-Time Analysis</div>
+                <div class="feature-desc">Get instant stock analysis and market insights powered by Claude Sonnet AI</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🚀</div>
+                <div class="feature-title">AWS Powered</div>
+                <div class="feature-desc">Built on AWS Bedrock with Lambda, API Gateway, and serverless architecture</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💼</div>
+                <div class="feature-title">Professional Reports</div>
+                <div class="feature-desc">Generate comprehensive financial reports and investment recommendations</div>
             </div>
         </div>
     </div>
-
-    <script>
-        function addMessage(message, sender) {
-            const container = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
-            
-            const bubble = document.createElement('div');
-            bubble.className = `message-bubble ${sender}-bubble`;
-            bubble.innerHTML = message.replace(/\n/g, '<br>');
-            
-            messageDiv.appendChild(bubble);
-            container.appendChild(messageDiv);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            if (!message) return;
-
-            addMessage(message, 'user');
-            input.value = '';
-
-            fetch('https://51jzujkz8h.execute-api.us-east-1.amazonaws.com/prod/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message: message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                addMessage(data.response || data.error || 'Error occurred', 'ai');
-            })
-            .catch(error => {
-                addMessage('Connection error. Please try again.', 'ai');
-            });
-        }
-
-        function quickMessage(message) {
-            document.getElementById('messageInput').value = message;
-            sendMessage();
-        }
-
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        addMessage('Hello! I\'m your AI financial assistant powered by Claude Sonnet. Ask me about stocks, market analysis, or financial insights!', 'ai');
-    </script>
 </body>
 </html>

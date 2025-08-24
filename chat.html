@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinvestecLab AI Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --bg-light: #ffffff;
+            --bg-dark: #1a1a1a;
+            --text-light: #2c3e50;
+            --text-dark: #ffffff;
+            --border-light: #e9ecef;
+            --border-dark: #333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.dark {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--bg-light);
+            border-right: 1px solid var(--border-light);
+            padding: 20px;
+            overflow-y: auto;
+            transition: width 0.3s ease, padding 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+            padding: 20px 10px;
+        }
+
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+
+        .sidebar-text {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            justify-content: center;
+        }
+
+        body.dark .sidebar {
+            background: var(--bg-dark);
+            border-right-color: var(--border-dark);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            z-index: 1001;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+
+        .sidebar-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        body.dark .sidebar-toggle {
+            background: var(--bg-dark);
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+
+        .sidebar-section h3 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+
+        .section-arrow {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .section-content {
+            max-height: 200px;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .sidebar-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.sidebar-collapsed {
+            margin-left: 60px;
+        }
+
+        .header {
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-light);
+        }
+
+        body.dark .header {
+            background: var(--bg-dark);
+            border-bottom-color: var(--border-dark);
+        }
+
+        .header-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border-light);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        body.dark .theme-toggle {
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+
+        .export-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome-title {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .quick-btn {
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        body.dark .quick-btn {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+            border-color: var(--primary-color);
+        }
+
+        .quick-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .chat-container {
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        body.dark .chat-container {
+            background: var(--bg-dark);
+            border-color: var(--border-dark);
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .user-message {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            margin-left: auto;
+        }
+
+        .ai-message {
+            background: #f8f9fa;
+            border: 1px solid var(--border-light);
+            color: var(--text-light);
+        }
+
+        body.dark .ai-message {
+            background: #2a2a2a;
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+
+        .input-area {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .message-input {
+            width: 100%;
+            padding: 16px 50px 16px 16px;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+            background: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        body.dark .message-input {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+            border-color: var(--border-dark);
+        }
+
+        .message-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .send-btn {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(1);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .data-indicator {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: var(--primary-color);
+            font-style: italic;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .chat-area {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-text">🤖 FinvestecLab</span>
+            <span class="sidebar-icon" style="display: none;">🤖</span>
+            <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+                ◀
+            </button>
+        </div>
+        
+        <button class="new-chat-btn" onclick="newChat()">
+            ➕ <span class="sidebar-text">New chat</span>
+        </button>
+        
+        <div class="sidebar-section">
+            <h3 class="sidebar-text" onclick="toggleSection('chats')">
+                <span>Chats</span>
+                <span class="section-arrow" id="chats-arrow">▼</span>
+            </h3>
+            <div class="section-content collapsed" id="chats-content">
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3 class="sidebar-text" onclick="toggleSection('projects')">
+                <span>Projects</span>
+                <span class="section-arrow" id="projects-arrow">▼</span>
+            </h3>
+            <div class="section-content collapsed" id="projects-content">
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3 class="sidebar-text" onclick="toggleSection('artifacts')">
+                <span>Artifacts</span>
+                <span class="section-arrow" id="artifacts-arrow">▼</span>
+            </h3>
+            <div class="section-content collapsed" id="artifacts-content">
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <div class="header">
+            <div class="header-title">
+                🤖 FinvestecLab AI Agent
+            </div>
+            <div class="header-controls">
+                <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+                <button class="export-btn" onclick="exportChat()">📤 Export</button>
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div class="welcome-section">
+                <h1 class="welcome-title">Good evening, mo</h1>
+                <p class="welcome-subtitle">Advanced Financial Analytics with Real-Time Data</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">5</div>
+                        <div>Companies</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">20+</div>
+                        <div>Financial Statements</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">16</div>
+                        <div>Data Frames/Company</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">Live</div>
+                        <div>Real-Time Data</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-container" id="chatContainer">
+                <div class="message ai-message">
+                    <div class="data-indicator">🔗 Connected to Live Data</div>
+                    <strong>Welcome to FinvestecLab AI Agent!</strong><br>
+                    I have access to your real financial data for AAPL, GOOGL, MSFT, AMZN, and ORCL.<br>
+                    Ask me anything about financial analysis, stock performance, or investment insights!
+                </div>
+            </div>
+
+            <div class="loading" id="loading">🤖 Analyzing your financial data...</div>
+
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="How can I help you today?"
+                        onkeypress="handleKeyPress(event)"
+                        oninput="autoResize(this)"
+                    ></textarea>
+                    <button class="send-btn" onclick="sendMessage()">↗️</button>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="sendQuickMessage('Financial analysis of portfolio')">📊 Financial Analysis</button>
+                <button class="quick-btn" onclick="sendQuickMessage('Data analytics on market trends')">📈 Data Analytics</button>
+                <button class="quick-btn" onclick="sendQuickMessage('Financial modelling for investment')">💼 Financial Modelling</button>
+                <button class="quick-btn" onclick="sendQuickMessage('Equity research report')">🔍 Equity Research</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://51jzujkz8h.execute-api.us-east-1.amazonaws.com/prod/chat';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.querySelector('.sidebar-toggle');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                toggleBtn.textContent = '▶';
+                toggleBtn.title = 'Expand Sidebar';
+            } else {
+                toggleBtn.textContent = '◀';
+                toggleBtn.title = 'Collapse Sidebar';
+            }
+        }
+
+        function toggleSection(sectionName) {
+            const content = document.getElementById(sectionName + '-content');
+            const arrow = document.getElementById(sectionName + '-arrow');
+            
+            content.classList.toggle('collapsed');
+            
+            if (content.classList.contains('collapsed')) {
+                arrow.textContent = '▼';
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                arrow.textContent = '▲';
+                arrow.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = document.body.classList.contains('dark') ? '☀️ Light' : '🌙 Dark';
+        }
+
+        function newChat() {
+            document.getElementById('chatContainer').innerHTML = `
+                <div class="message ai-message">
+                    <div class="data-indicator">🔗 Connected to Live Data</div>
+                    <strong>Welcome to FinvestecLab AI Agent!</strong><br>
+                    I have access to your real financial data for AAPL, GOOGL, MSFT, AMZN, and ORCL.<br>
+                    Ask me anything about financial analysis, stock performance, or investment insights!
+                </div>
+            `;
+        }
+
+        function exportChat() {
+            const chatContent = document.getElementById('chatContainer').innerText;
+            const blob = new Blob([chatContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `financial-analysis-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function sendQuickMessage(message) {
+            document.getElementById('messageInput').value = message;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+            input.style.height = 'auto';
+
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                if (data.response) {
+                    let aiResponse = data.response;
+                    if (data.data_sources && data.data_sources > 0) {
+                        aiResponse = `<div class="data-indicator">📊 Using ${data.data_sources} live data source(s)</div>` + aiResponse;
+                    }
+                    addMessage(aiResponse, 'ai');
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                addMessage('Connection error. Please check your internet connection and try again.', 'ai');
+            }
+        }
+
+        function addMessage(message, sender) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.innerHTML = message;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        document.getElementById('messageInput').focus();
+    </script>
+</body>
+</html>
